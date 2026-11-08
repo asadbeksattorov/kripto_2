@@ -1,0 +1,4138 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kriptografiya — Mavzuli Quiz & Flashcard</title>
+<script>
+try{var p=JSON.parse(localStorage.getItem('kq_prefs')||'{}');var d=p.theme?p.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark')}catch(e){}
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+.flip{perspective:1200px}
+.flip-inner{display:grid;transition:transform .5s;transform-style:preserve-3d}
+.flip-inner.is-flipped{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.back{transform:rotateY(180deg)}
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen transition-colors">
+<div class="max-w-4xl mx-auto px-4 py-5">
+
+  <header class="flex items-center justify-between gap-3 mb-4">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold">🔐 Kriptografiya</h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400"><span id="count">0</span> ta savol · <span id="ncat">0</span> ta mavzu · bir savol bir nechta mavzuga kirishi mumkin</p>
+    </div>
+    <div class="flex gap-2">
+      <button data-act="import" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium">📥 Import</button>
+      <button data-act="theme" id="themeBtn" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">🌙</button>
+    </div>
+  </header>
+
+  <nav class="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-200 dark:bg-slate-800 mb-4">
+    <button data-mode="topics" class="tab py-2 rounded-xl text-sm font-semibold">📚 Mavzular</button>
+    <button data-mode="fc" class="tab py-2 rounded-xl text-sm font-semibold">🃏 Kartochka</button>
+    <button data-mode="quiz" class="tab py-2 rounded-xl text-sm font-semibold">✅ Test</button>
+  </nav>
+
+  <section class="grid grid-cols-3 gap-2 mb-3 text-center">
+    <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2"><div class="text-xs text-slate-500 dark:text-slate-400">Yechilgan</div><div id="stSolved" class="font-bold text-lg">0</div></div>
+    <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2"><div class="text-xs text-slate-500 dark:text-slate-400">Aniqlik</div><div id="stAcc" class="font-bold text-lg text-indigo-600 dark:text-indigo-400">0%</div></div>
+    <div class="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2"><div class="text-xs text-slate-500 dark:text-slate-400">Xatolar</div><div id="stBad" class="font-bold text-lg text-rose-600 dark:text-rose-400">0</div></div>
+  </section>
+
+  <div class="mb-4">
+    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1"><span id="barLabel"></span><span id="barPct"></span></div>
+    <div class="h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden"><div id="bar" class="h-full bg-indigo-500 transition-all duration-300" style="width:0%"></div></div>
+  </div>
+
+  <div id="toolbar" class="hidden mb-4 p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <select id="topicSel" class="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1.5 max-w-full"></select>
+      <label class="flex items-center gap-1.5 cursor-pointer select-none"><input type="checkbox" id="onlyBad" class="accent-rose-600"> Faqat xatolar</label>
+      <label class="flex items-center gap-1.5 cursor-pointer select-none"><input type="checkbox" id="rnd" class="accent-indigo-600"> Tasodifiy</label>
+      <button data-act="restart" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700">🔁 Yangidan</button>
+    </div>
+  </div>
+
+  <main id="view"></main>
+
+  <div id="foot" class="mt-6 text-center"><button data-act="reset" class="text-xs text-slate-500 underline">Progressni tozalash</button></div>
+</div>
+
+<div id="modal" class="hidden fixed inset-0 z-50 bg-black/60 p-4 overflow-y-auto">
+  <div class="max-w-2xl mx-auto mt-6 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5">
+    <div class="flex justify-between items-center mb-2"><h2 class="font-bold text-lg">Savollarni import qilish</h2><button data-act="closeModal" class="text-2xl leading-none px-2">×</button></div>
+    <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Savollar <b>+++</b>, variantlar <b>===</b> bilan ajratiladi, to’g’ri javob oldiga <b>#</b> qo’yiladi. Mavzular avtomatik aniqlanadi.</p>
+    <textarea id="impText" rows="9" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3 text-sm font-mono" placeholder="Matnni shu yerga qo’ying..."></textarea>
+    <div id="impInfo" class="text-sm my-2 text-slate-500 dark:text-slate-400">Matn kiritilmagan.</div>
+    <div class="flex flex-wrap gap-4 text-sm mb-3">
+      <label class="flex items-center gap-1.5"><input type="radio" name="impMode" value="replace" checked class="accent-indigo-600"> Almashtirish</label>
+      <label class="flex items-center gap-1.5"><input type="radio" name="impMode" value="append" class="accent-indigo-600"> Qo’shish</label>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button data-act="doImport" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium">Yuklash</button>
+      <button data-act="defaults" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600">Standart savollarga qaytish</button>
+    </div>
+  </div>
+</div>
+
+<script type="text/plain" id="defaultData">
++++
+
+Blowfish shifrlash algoritmi bloki o'lchami qanday?
+
+===
+
+#64 bit
+
+===
+
+32 bit
+
+===
+
+128 bit
+
+===
+
+256 bit
+
++++
+
+Berilgan algoritmning kriptobardoshliligi nimaga asoslangan?
+
+===
+
+#Kalitga bog'liq S-boxlar va P-massivning murakkab kalit jadvaliga
+
+===
+
+Qat'iy (o'zgarmas) S-boxlarga
+
+===
+
+Faqat blok o'lchamining kattaligiga
+
+===
+
+Ochiq kalitning maxfiy saqlanishiga
+
++++
+
+RSA algoritmida e-ochiq kalit, d-maxfiy kalit va n-modul bo'lsa, qaysi formula shifrlash jarayonini ifodalaydi?
+
+===
+
+#C = M^e mod n, e · d ≡ 1 (mod φ(n))
+
+===
+
+a = M^e mod d
+
+===
+
+C = d^e mod n
+
+===
+
+C = M^d mod e
+
++++
+
+RSA algoritmida e-ochiq kalit, d-maxfiy kalit va φ(n)-Eyler funksiyasi bo'lsa, ular uchun qaysi shart o'rinli?
+
+===
+
+#e · d ≡ 1 (mod φ(n))
+
+===
+
+e · d ≡ 1 (mod n)
+
+===
+
+e + d ≡ 1 (mod φ(n))
+
+===
+
+e · d = φ(n)
+
++++
+
+Qaysi juftlik RSA algoritmining ochiq va yopiq kalitlarini ifodalaydi?
+
+===
+
+#Ochiq kalit {e, n}, yopiq kalit {d, n}
+
+===
+
+Ochiq kalit {d, n}, yopiq kalit {e, n}
+
+===
+
+Ochiq kalit {e, d}, yopiq kalit {p, q}
+
+===
+
+Ochiq kalit {p, q}, yopiq kalit {e, n}
+
++++
+
+RSA algoritmining maxfiy kalitini topish qanday masalani yechish murakkabligiga asoslanadi?
+
+===
+
+#Katta sonni tub ko'paytuvchilarga ajratish (faktorlash) masalasi
+
+===
+
+Chiziqli tenglamalar sistemasini yechish masalasi
+
+===
+
+Sonlarni qo'shish va ayirish masalasi
+
+===
+
+Ikki sonning eng katta umumiy bo'luvchisini topish masalasi
+
++++
+
+RSA algoritmi maxfiy kaliti qanday aniqlanadi?
+
+===
+
+#d = e^(-1) mod φ(n), ya'ni e · d ≡ 1 (mod φ(n))
+
+===
+
+d = e^(-1) mod n
+
+===
+
+d = e · φ(n)
+
+===
+
+d = p + q
+
++++
+
+Berilgan shifrlash algoritmi kaliti qanday asosga ko'ra yaratiladi? Berilgan algoritmning kriptobardoshligi qanday aniqlanadi?
+
+===
+
+#Kalit asosida P-massiv va S-boxlar hosil qilinadi; kriptobardoshlilik kalit uzunligi va kalit jadvalining murakkabligi bilan aniqlanadi
+
+===
+
+Kalit tasodifiy S-boxlardan olinadi; kriptobardoshlilik faqat raundlar soni bilan aniqlanadi
+
+===
+
+Kalit katta sonni faktorlash asosida yaratiladi; kriptobardoshlilik diskret logarifm bilan aniqlanadi
+
+===
+
+Kalit xesh funksiya yordamida yaratiladi; kriptobardoshlilik xesh uzunligi bilan aniqlanadi
+
++++
+
+A va B to'plamlarning umumiy elementlaridan tashkil topgan to'plam A va B to'plamlarning … deyiladi.
+
+===
+
+#kesishmasi
+
+===
+
+birlashmasi
+
+===
+
+ayirmasi
+
+===
+
+simmetrik ayirmasi
+
++++
+
+Birorta ham elementga ega bo'lmagan to'plam … deyiladi.
+
+===
+
+#bo'sh to'plam
+
+===
+
+universal to'plam
+
+===
+
+qism to'plam
+
+===
+
+cheksiz to'plam
+
++++
+
+Agar A to'plamning har bir elementi B to'plamga ham tegishli bo'lsa, A to'plam B to'plamning … to'plami deyiladi.
+
+===
+
+#qism (ost)
+
+===
+
+kesishma
+
+===
+
+birlashma
+
+===
+
+to'ldiruvchi
+
++++
+
+Quyidagilardan qaysi biri shifrlanish jarayonini ifodalaydi?
+
+===
+
+#C = E_k(M)
+
+===
+
+M = D_k(C)
+
+===
+
+C = D_k(M)
+
+===
+
+M = E_k(C)
+
++++
+
+… dastlabki matnga o'girish deyiladi.
+
+===
+
+#Deshifrlash
+
+===
+
+Shifrlash
+
+===
+
+Kriptotahlil
+
+===
+
+Xeshlash
+
++++
+
+Qanday kriptografik tizimlar simmetrik kriptotizimlar deb nomlanadi?
+
+===
+
+#Shifrlash va deshifrlashda bir xil (yagona) kalit ishlatiladigan tizimlar
+
+===
+
+Shifrlash va deshifrlashda ikki xil kalit ishlatiladigan tizimlar
+
+===
+
+Kalit umuman ishlatilmaydigan tizimlar
+
+===
+
+Faqat ochiq kalit ishlatiladigan tizimlar
+
++++
+
+Qanday kriptografik tizimlar asimmetrik kriptotizimlar deb nomlanadi?
+
+===
+
+#Shifrlash uchun ochiq kalit, deshifrlash uchun yopiq (maxfiy) kalit ishlatiladigan tizimlar
+
+===
+
+Shifrlash va deshifrlashda bir xil kalit ishlatiladigan tizimlar
+
+===
+
+Kalit umuman ishlatilmaydigan tizimlar
+
+===
+
+Faqat maxfiy kalit ishlatiladigan va hamma uchun bir xil bo'lgan tizimlar
+
++++
+
+Zamonaviy blokli simmetrik kriptotizimlarni qurish qanday arxitekturaga asoslangan?
+
+===
+
+#Feistel tarmog'i (SP-tarmoq)
+
+===
+
+Elliptik egri chiziqlarga
+
+===
+
+Faktorlash masalasiga
+
+===
+
+Diskret logarifm masalasiga
+
++++
+
+Zamonaviy asimmetrik kriptotizimlarni yaratish nimaga asoslangan?
+
+===
+
+#Bir tomonlama funksiyalarga (faktorlash, diskret logarifm kabi murakkab masalalarga)
+
+===
+
+Feistel tarmog'iga
+
+===
+
+Almashtirish va o'rin almashtirish shifrlariga
+
+===
+
+S-boxlar jadvaliga
+
++++
+
+Zamonaviy kriptologiya qanday yo'nalishlardan tashkil topgan?
+
+===
+
+#Kriptografiya va kriptotahlil
+
+===
+
+Kriptografiya va steganografiya
+
+===
+
+Kriptotahlil va xeshlash
+
+===
+
+Shifrlash va deshifrlash
+
++++
+
+Zamonaviy kriptografiya qanday yo'nalishlardan tashkil topgan?
+
+===
+
+#Simmetrik kriptotizimlar, asimmetrik kriptotizimlar, xesh funksiyalar, elektron raqamli imzo, kalitlarni boshqarish
+
+===
+
+Faqat simmetrik va asimmetrik kriptotizimlar
+
+===
+
+Kriptotahlil, steganografiya va kodlash
+
+===
+
++++
+
+Zamonaviy simmetrik shifrlash algoritmlarining qanday turlari mavjud?
+
+===
+
+#Blokli va oqimli shifrlash algoritmlari
+
+===
+
+Ochiq kalitli va yopiq kalitli algoritmlar
+
+===
+
+Xeshlash va raqamli imzo algoritmlari
+
+===
+
+Almashtirish va o'rin almashtirish algoritmlari
+
++++
+
+Zamonaviy simmetrik blokli shifrlash algoritmlarida qanday primitiv amallar qo'llaniladi?
+
+===
+
+#Almashtirish, o'rin almashtirish, siklik siljitish, XOR va modul bo'yicha qo'shish
+
+===
+
+Faktorlash, diskret logarifmlash va darajaga oshirish
+
+===
+
+Faqat ko'paytirish va bo'lish
+
+===
+
+Faqat xeshlash va kodlash
+
++++
+
+GOST 28147-89 simmetrik blokli shifrlash algoritmida S-bloklardan chiquvchi 32 bitli blok qanday siklik suriladi?
+
+===
+
+#11 bit chapga
+
+===
+
+11 bit o'ngga
+
+===
+
+9 bit chapga
+
+===
+
+8 bit chapga
+
++++
+
+... ochiq ma'lumotni shifrlash va deshifrlash jarayonlari hamda kalitlarni generatsiya qiluvchi amallar majmui bo'lib, alifbo belgilarini almashtirish ketma-ketligidan iborat … shifrlash kaliti noma'lum bo'lgan holda shifrlangan ma'lumotni deshifrlashning qiyinlik darajasini belgilaydi.
+
+===
+
+#Kriptografik algoritm, kriptobardoshlilik
+
+===
+
+Xesh funksiya, kolliziya
+
+===
+
+Raqamli imzo, autentifikatsiya
+
+===
+
+Kriptotahlil, kodlash
+
++++
+
+Axborotni noqonuniy foydalanuvchilardan himoyalash maqsadida uni aslidan o'zgartirilgan holatga akslantirish uslublarini topish va takomillashtirish bilan shug'ullanadigan fan nima deb ataladi?
+
+===
+
+#Kriptografiya
+
+===
+
+Kriptotahlil
+
+===
+
+Steganografiya
+
+===
+
+Kodlash nazariyasi
+
++++
+
+DES algoritmida raund kaliti necha bitga teng?
+
+===
+
+#48 bit
+
+===
+
+56 bit
+
+===
+
+64 bit
+
+===
+
+32 bit
+
++++
+
+DES algoritmida dastlabki kalit uzunligi necha bitga teng?
+
+===
+
+#64 bit
+
+===
+
+56 bit
+
+===
+
+48 bit
+
+===
+
+128 bit
+
++++
+
+DES algoritmida qismiy bloklarning uzunligi necha bitga teng?
+
+===
+
+#32 bit
+
+===
+
+64 bit
+
+===
+
+48 bit
+
+===
+
+56 bit
+
++++
+
+DES shifrlash algoritmida S blok qanday funksiyani bajaradi?
+
+===
+
+#6 bitli kirishni 4 bitli chiqishga almashtiradi (siqadi)
+
+===
+
+4 bitli kirishni 6 bitli chiqishga kengaytiradi
+
+===
+
+32 bitli blokni 48 bitga kengaytiradi
+
+===
+
+Bitlarning o'rnini almashtiradi (permutatsiya)
+
++++
+
+DES algoritmida raundlar soni nechta?
+
+===
+
+#16
+
+===
+
+8
+
+===
+
+12
+
+===
+
+32
+
++++
+
+DES algoritmida E blok kengaytirilishidan so'ng qanday amal bajariladi?
+
+===
+
+#Raund kaliti bilan XOR (mod 2 bo'yicha qo'shish)
+
+===
+
+S-bloklarga berilmasdan to'g'ridan-to'g'ri IP ga uzatiladi
+
+===
+
+Siklik siljitish
+
+===
+
+Mod 2^32 bo'yicha ko'paytirish
+
++++
+
+DES algoritmi qaysi tarmoq asosida yaratilgan?
+
+===
+
+#Feistel tarmog'i
+
+===
+
+SP-tarmoq (Rijndael)
+
+===
+
+Elliptik egri chiziq
+
+===
+
+Lai-Messi tarmog'i
+
++++
+
+DES da IP jadval qanday ish bajaradi?
+
+===
+
+#64 bitli ochiq matn bitlarining o'rnini almashtiradi (boshlang'ich o'rin almashtirish)
+
+===
+
+32 bitli blokni 48 bitga kengaytiradi
+
+===
+
+6 bitni 4 bitga almashtiradi
+
+===
+
+Raund kalitini hosil qiladi
+
++++
+
+Zamonaviy kriptografiyada ERI nima vazifalarni bajaradi?
+
+===
+
+#Xabar yaxlitligini va muallifligini tasdiqlaydi, imzodan voz kechishga yo'l qo'ymaydi
+
+===
+
+Xabarni maxfiylikka shifrlaydi
+
+===
+
+Xabar hajmini kamaytiradi (siqadi)
+
+===
+
+Kalitlarni tasodifiy generatsiya qiladi
+
++++
+
+ERIni tashkil etuvchilarini ko'rsating.
+
+===
+
+#Imzo shakllantirish va imzoni tekshirish algoritmlari
+
+===
+
+Faqat shifrlash algoritmi
+
+===
+
+Faqat xesh funksiya
+
+===
+
+Blokli va oqimli shifrlar
+
++++
+
+ERIlar asosan … ga asoslangan.
+
+===
+
+#asimmetrik (ochiq kalitli) kriptotizimlar
+
+===
+
+simmetrik kriptotizimlar
+
+===
+
+oqimli shifrlar
+
+===
+
+o'rin almashtirish shifrlari
+
++++
+
+GOST R 34.10-2001 ERI standarti qaysi davlatga tegishli?
+
+===
+
+#Rossiya
+
+===
+
+AQSh
+
+===
+
+O'zbekiston
+
+===
+
+Xitoy
+
++++
+
+ECDSA ERI standarti … davlatiga tegishli
+
+===
+
+#AQSh
+
+===
+
+Rossiya
+
+===
+
+O'zbekiston
+
+===
+
+Germaniya
+
++++
+
+SHA-1 xesh funksiyasi bo'yicha xesh qiymat uzunligi … bitga teng.
+
+===
+
+#160
+
+===
+
+128
+
+===
+
+256
+
+===
+
+512
+
++++
+
+MD5 xesh funksiyasi bo'yicha xesh qiymat uzunligi … teng.
+
+===
+
+#128 bit
+
+===
+
+160 bit
+
+===
+
+256 bit
+
+===
+
+512 bit
+
++++
+
+SHA-224, SHA-256, SHA-384, SHA-512 xesh funksiyalar uchun umumiy bo'lgan xususiyatni ko'rsating.
+
+===
+
+#Ularning barchasi SHA-2 oilasiga mansub, bir xil tuzilishga (Merkle-Damgard) asoslangan, faqat xesh uzunligi farq qiladi
+
+===
+
+Ularning barchasida xesh qiymat uzunligi 160 bit
+
+===
+
+Ularning barchasi simmetrik blokli shifrlar
+
+===
+
+Ularning barchasida ochiq va yopiq kalit ishlatiladi
+
++++
+
+Xesh funksiya nima?
+
+===
+
+#Ixtiyoriy uzunlikdagi ma'lumotni qat'iy uzunlikdagi qiymatga akslantiruvchi bir tomonlama funksiya
+
+===
+
+Ochiq matnni kalit yordamida shifrmatnga aylantiruvchi funksiya
+
+===
+
+Shifrmatnni ochiq matnga qaytaruvchi funksiya
+
+===
+
+Ikki kalitni almashtiruvchi protokol
+
++++
+
+O'zDSt 1105:2009 ma'lumotlarni shifrlash standartida qo'llanilgan matematik amallar nimaga asoslangan?
+
+===
+
+#Modul (p = 256) bo'yicha diamatritsalar algebrasiga
+
+===
+
+Elliptik egri chiziqlardagi amallarga
+
+===
+
+Chekli (Galua) maydonidagi amallarga
+
+===
+
+Diskret logarifmga
+
++++
+
+O'zDSt 1105:2009 ma'lumotlarni shifrlash standarti … asosida yaratilgan.
+
+===
+
+#ustunlarni aralashtirish va bayt bo'yicha almashtirish ayirboshlashlariga
+
+===
+
+Elliptik egri chiziqlar
+
+===
+
+Faktorlash masalasi
+
+===
+
+Diskret logarifm masalasi
+
++++
+
+O'zDSt 1105:2009 ma'lumotlarni shifrlash standartidagi eng murakkab amal qaysi?
+
+===
+
+#Diamatritsani diamatritsaga teskarilash (modul p bo'yicha)
+
+===
+
+Kalit bilan XOR
+
+===
+
+Siklik siljitish
+
+===
+
+Mod 2^32 bo'yicha qo'shish
+
++++
+
+Kriptotizim – bu …
+
+===
+
+#shifrlash va deshifrlash algoritmlari, kalitlar hamda ularni boshqarish usullari majmui
+
+===
+
+faqat shifrlash kaliti
+
+===
+
+faqat shifrlangan matn
+
+===
+
+axborotni kodlash jadvali
+
++++
+
+DES shifrlash algoritmi nechanchi yilda AQSh standarti sifatida tasdiqlangan?
+
+===
+
+#1977
+
+===
+
+1989
+
+===
+
+1993
+
+===
+
+2001
+
++++
+
+1989-yili sobiq SSSRda yaratilgan shifrlash algoritmi qaysi?
+
+===
+
+#GOST 28147-89
+
+===
+
+DES
+
+===
+
+Blowfish
+
+===
+
+AES
+
++++
+
+Ochiq matn alfaviti belgilarini shifr matn alfaviti belgilariga almashtirishga asoslangan shifr nima deb ataladi?
+
+===
+
+#Almashtirish shifri
+
+===
+
+O'rin almashtirish shifri
+
+===
+
+Gammalashtirish shifri
+
+===
+
+Blokli shifr
+
++++
+
+Ochiq matn belgilarini o'zaro almashtirib, shifrmatn hosil qiladigan shifr qanday nomlanadi?
+
+===
+
+#O'rin almashtirish shifri
+
+===
+
+Almashtirish shifri
+
+===
+
+Gammalashtirish shifri
+
+===
+
+Asimmetrik shifr
+
++++
+
+Ochiq matndagi bitta belgi o'rniga shifr matndagi bitta belgi mos qo'yilsa, bunday o'rniga qo'yish shifri nima deyiladi?
+
+===
+
+#Oddiy (monoalfavitli) almashtirish shifri
+
+===
+
+Gammalashtirish shifri
+
+===
+
+Ko'p alfavitli almashtirish shifri
+
+===
+
+O'rin almashtirish shifri
+
++++
+
+Shifrlashda qanday kriptotizimlardan foydalaniladi?
+
+===
+
+#Simmetrik va asimmetrik kriptotizimlardan
+
+===
+
+Faqat simmetrik kriptotizimlardan
+
+===
+
+Faqat xesh funksiyalardan
+
+===
+
+Faqat kodlash jadvallaridan
+
++++
+
+Kriptotahlil bilan shug'ullanuvchi mutaxassislar qanday nomlanadi?
+
+===
+
+#Kriptoanalitiklar (kriptotahlilchilar)
+
+===
+
+Kriptograflar
+
+===
+
+Steganograflar
+
+===
+
+Kodlovchilar
+
++++
+
+O'rniga qo'yish-o'rin almashtirishga asoslangan shifrlash algoritmi qanday tarmoqqa asoslangan?
+
+===
+
+#SP-tarmoq
+
+===
+
+Feistel tarmog'i
+
+===
+
+Elliptik egri chiziq
+
+===
+
+Lai-Messi tarmog'i
+
++++
+
+Feistel tarmog'ining sxemasi nechanchi yilda va kim tomonidan taklif etilgan?
+
+===
+
+#1973-yilda Xorst Feistel tomonidan
+
+===
+
+1977-yilda Bryus Shnayer tomonidan
+
+===
+
+1976-yilda Diffi va Xellman tomonidan
+
+===
+
+1998-yilda Vinsent Reymen tomonidan
+
++++
+
+AES shifrlash standartining mualliflari kimlar?
+
+===
+
+#Vinsent Reymen va Joan Daemen
+
+===
+
+Rivest, Shamir va Adleman
+
+===
+
+Xorst Feistel va Don Kopersmit
+
+===
+
+Bryus Shnayer va Nils Fergyuson
+
++++
+
+DES shifrlash algoritmida dastlabki kalit uzunligi va blok uzunligi mos holda qancha bo'lishi kerak?
+
+===
+
+#64 bit va 64 bit
+
+===
+
+56 bit va 64 bit
+
+===
+
+128 bit va 64 bit
+
+===
+
+64 bit va 128 bit
+
++++
+
+DES shifrlash algoritmi nechta rejimda ishlashi belgilab qo'yilgan?
+
+===
+
+#4 ta
+
+===
+
+2 ta
+
+===
+
+3 ta
+
+===
+
+6 ta
+
++++
+
+Shifrlanuvchi bloklar bir-biriga bog'liq bo'lmagan holda alohida shifrlash algoritmi orqali qayta ishlanadigan DES shifrlash algoritmining rejimi qanday nomlanadi?
+
+===
+
+#ECB (elektron kodli kitob) rejimi
+
+===
+
+CBC (shifrlangan bloklarni bog'lash) rejimi
+
+===
+
+CFB (shifrmatn bo'yicha teskari aloqa) rejimi
+
+===
+
+OFB (chiqish bo'yicha teskari aloqa) rejimi
+
++++
+
+DES shifrlash algoritmi qaysi tarmoqqa asoslangan?
+
+===
+
+#Feistel tarmog'iga
+
+===
+
+SP-tarmoqqa
+
+===
+
+Lai-Messi tarmog'iga
+
+===
+
+Elliptik egri chiziqqa
+
++++
+
+AES shifrlash algoritmi qaysi tarmoqqa asoslangan?
+
+===
+
+#SP-tarmoqqa
+
+===
+
+Feistel tarmog'iga
+
+===
+
+Lai-Messi tarmog'iga
+
+===
+
+Elliptik egri chiziqqa
+
++++
+
+GOST 28147-89 shifrlash algoritmi qaysi tarmoqqa asoslangan?
+
+===
+
+#Feistel tarmog'iga
+
+===
+
+SP-tarmoqqa
+
+===
+
+Lai-Messi tarmog'iga
+
+===
+
+Elliptik egri chiziqqa
+
++++
+
+Sezar shifrlash usulini ko'rsating.
+
+===
+
+#Har bir harf alifboda 3 o'rin siljitilgan harf bilan almashtiriladi: C = (M + 3) mod N
+
+===
+
+Harflar o'rni jadval bo'yicha o'zaro almashtiriladi
+
+===
+
+Har bir harf kalit so'z harflari bilan ketma-ket qo'shiladi
+
+===
+
+C = M^e mod n
+
++++
+
+Shifrlash so'zining ma'nosi nima?
+
+===
+
+#Ochiq ma'lumotni shifrmatnga aylantirish jarayoni
+
+===
+
+Shifrmatnni ochiq matnga aylantirish jarayoni
+
+===
+
+Shifrni buzish (ochish) jarayoni
+
+===
+
+Ma'lumotni qat'iy uzunlikdagi qiymatga akslantirish
+
++++
+
+Kalit – …
+
+===
+
+#shifrlash va deshifrlash algoritmining ishlashini boshqaruvchi maxfiy parametr (axborot)
+
+===
+
+shifrlangan matnning o'zi
+
+===
+
+shifrlash algoritmining nomi
+
+===
+
+ochiq matn alfaviti
+
++++
+
+Simmetrik kriptotizimlarda shifrlash va dastlabki matnga o'girishda qanday kalitlar ishlatiladi?
+
+===
+
+#Bir xil (yagona) kalit
+
+===
+
+Ikki xil kalit: ochiq va yopiq
+
+===
+
+Faqat ochiq kalit
+
+===
+
+Kalit ishlatilmaydi
+
++++
+
+Ochiq kalitli tizimda shifrlash va dastlabki matnga o'girish uchun qanday kalit ishlatiladi?
+
+===
+
+#Shifrlash uchun ochiq kalit, dastlabki matnga o'girish uchun yopiq (maxfiy) kalit
+
+===
+
+Ikkalasi uchun ham bir xil kalit
+
+===
+
+Shifrlash uchun yopiq kalit, dastlabki matnga o'girish uchun ochiq kalit
+
+===
+
+Ikkalasi uchun ham faqat ochiq kalit
+
++++
+
+Kriptobardoshlilik – bu …
+
+===
+
+#kriptografik algoritmning kalit noma'lum bo'lganda shifrlangan ma'lumotni ochishga (kriptotahlilga) qarshi tura olish qobiliyati
+
+===
+
+shifrlash tezligi
+
+===
+
+shifrlangan ma'lumot hajmi
+
+===
+
+algoritm kodining uzunligi
+
++++
+
+Kriptobardoshlikning qanaqa ko'rsatkichlari mavjud?
+
+===
+
+#Mumkin bo'lgan kalitlar soni, kriptotahlilning hisoblash murakkabligi (vaqt va xotira talabi)
+
+===
+
+Shifrlash tezligi va dastur hajmi
+
+===
+
+Alifbo o'lchami va matn uzunligi
+
+===
+
+Foydalanuvchilar soni va tarmoq tezligi
+
++++
+
+Axborotni himoyalashda shifrlashning samaradorligi … bog'liq.
+
+===
+
+#kalitning maxfiyligiga
+
+===
+
+algoritmning maxfiyligiga
+
+===
+
+shifrlangan matn hajmiga
+
+===
+
+foydalanuvchilar soniga
+
++++
+
+Shifrlangan ma'lumot o'qilishi mumkin, agarda …
+
+===
+
+#kalit ma'lum bo'lsa (kalit aniqlansa)
+
+===
+
+shifrlash algoritmi nomi ma'lum bo'lsa
+
+===
+
+shifrmatn uzunligi ma'lum bo'lsa
+
+===
+
+ochiq matn alfaviti ma'lum bo'lsa
+
++++
+
+Kalitlarning mumkin bo'lgan to'plamlaridan olingan har qanday kalitlar … ni ta'minlaydi.
+
+===
+
+#bir xil kriptobardoshlilik
+
+===
+
+turlicha kriptobardoshlilik
+
+===
+
+shifrlash tezligining ortishini
+
+===
+
+kalitning ochiq bo'lishini
+
++++
+
+Zamonaviy simmetrik kriptotizimlar uchun xos belgilarni toping.
+
+===
+
+#Algoritm ochiq, kriptobardoshlilik faqat kalit maxfiyligiga bog'liq, shifrlash va deshifrlashda bir xil kalit ishlatiladi
+
+===
+
+Algoritm maxfiy saqlanadi, kalit ochiq bo'ladi
+
+===
+
+Shifrlash va deshifrlashda turli kalitlar ishlatiladi
+
+===
+
+Bardoshlilik faqat algoritmning maxfiyligiga bog'liq
+
++++
+
+Sezar shifri uchun quyidagilarning qaysi biri o'rinli?
+
+===
+
+#Monoalfavitli almashtirish shifri bo'lib, har bir harf alifboda 3 o'rin siljitiladi
+
+===
+
+O'rin almashtirish shifri
+
+===
+
+Asimmetrik kriptotizim
+
+===
+
+Blokli simmetrik shifr (Feistel tarmog'i)
+
++++
+
+{ Li = Ri-1, Ri = Li-1 ⊕ F(Ri-1, Ki), i = 1,2,...,16; Bu yerda F qanday funksiya?
+
+===
+
+#Raund (Feistel) funksiyasi: E kengaytirish, kalit bilan XOR, S-bloklar va P almashtirishdan iborat
+
+===
+
+Xesh funksiya
+
+===
+
+Raqamli imzo funksiyasi
+
+===
+
+Kalitlarni almashtirish funksiyasi
+
++++
+
+Shifrlash algoritmlarida samarali tarqatish akslantirishi uchun, odatda, qanday akslantirishdan foydalaniladi?
+
+===
+
+#Chiziqli akslantirish
+
+===
+
+Chiziqsiz akslantirish (S-blok)
+
+===
+
+Bir tomonlama akslantirish
+
+===
+
+Tasodifiy akslantirish
+
++++
+
+Teskarisi mavjud bo'lmagan akslantirishlar qanday akslantirishlar deyiladi?
+
+===
+
+#Bir tomonlama (qaytmas) akslantirishlar
+
+===
+
+Chiziqli akslantirishlar
+
+===
+
+O'rin almashtirish akslantirishlari
+
+===
+
+Simmetrik akslantirishlar
+
++++
+
+Kriptotizimga hujum quyidagilarning qaysi biri bilan bog'langan?
+
+===
+
+#Kriptotahlil (kalitni yoki ochiq matnni topishga urinish)
+
+===
+
+Kalitlarni generatsiya qilish
+
+===
+
+Ma'lumotni shifrlash
+
+===
+
+Ma'lumotni kodlash
+
++++
+
+Ma'lumotlarni himoyalash deganda nima tushuniladi?
+
+===
+
+#Ma'lumotlarning maxfiyligi, yaxlitligi va foydalanuvchanligini ruxsatsiz kirish, o'zgartirish va yo'q qilishdan saqlash choralari majmui
+
+===
+
+Ma'lumotlarni faqat arxivlash va nusxalash
+
+===
+
+Ma'lumotlar hajmini kamaytirish usullari
+
+===
+
+Ma'lumotlarni tezroq uzatish usullari
+
++++
+
+Ma'lumotni qonuniy manbadan olinganligini kafolatlovchi va oluvchining haqiqiyligini tasdiqlovchi xizmat qanday nomlanadi?
+
+===
+
+#Autentifikatsiya
+
+===
+
+Maxfiylik
+
+===
+
+Foydalanuvchanlik
+
+===
+
+Avtorizatsiya
+
++++
+
+Kriptografik usullardan foydalanishning asosiy yo'nalishlari nimalardan iborat?
+
+===
+
+#Axborotni shifrlash (maxfiylik), autentifikatsiya, elektron raqamli imzo, kalitlarni taqsimlash va boshqarish
+
+===
+
+Faqat axborotni arxivlash va siqish
+
+===
+
+Faqat ma'lumotlarni uzatish tezligini oshirish
+
+===
+
+Faqat tarmoq jihozlarini sozlash
+
++++
+
+Shifr nima?
+
+===
+
+#Shifrlash va deshifrlash uchun ishlatiladigan, kalitga bog'liq akslantirishlar (almashtirishlar) to'plami
+
+===
+
+Faqat kalit
+
+===
+
+Faqat ochiq matn
+
+===
+
+Ma'lumotni qat'iy uzunlikdagi qiymatga akslantiruvchi funksiya
+
++++
+
+RSA algoritmi qanday maqsadda ishlatiladi?
+
+===
+
+#Ma'lumotlarni shifrlash va elektron raqamli imzo yaratish uchun
+
+===
+
+Faqat xesh qiymat hisoblash uchun
+
+===
+
+Faqat ma'lumotlarni siqish uchun
+
+===
+
+Faqat oqimli shifrlash uchun
+
++++
+
+Ochiq kalitli kriptotizimlarning mohiyati nimadan iborat?
+
+===
+
+#Ikki kalit ishlatiladi: ochiq kalit (hammaga ma'lum) shifrlash uchun, yopiq kalit (maxfiy) deshifrlash uchun; ochiq kalitdan yopiq kalitni topish hisoblash jihatidan juda qiyin
+
+===
+
+Shifrlash va deshifrlash uchun bitta maxfiy kalit ishlatiladi
+
+===
+
+Kalit umuman ishlatilmaydi
+
+===
+
+Ikkala kalit ham hammaga ochiq bo'ladi
+
++++
+
+Quyida keltirilgan algoritmlardan ochiq kalitli kriptotizimlarni ko'rsating: RSA, DES, O'zDSt 1105:2009, GOST 28147, El-Gamal.
+
+===
+
+#RSA, El-Gamal
+
+===
+
+DES, GOST 28147
+
+===
+
+RSA, DES
+
+===
+
+O'zDSt 1105:2009, El-Gamal
+
++++
+
+XOR amali qanday amal?
+
+===
+
+#Bitli mod 2 bo'yicha qo'shish (istisnoli YOKI)
+
+===
+
+Mod 2^32 bo'yicha qo'shish
+
+===
+
+Bitli ko'paytirish (VA)
+
+===
+
+Siklik siljitish
+
++++
+
+GOST-28147-89 shifrlash algoritmi necha bitli kalitlar fazosidan foydalanadi?
+
+===
+
+#256 bit
+
+===
+
+64 bit
+
+===
+
+128 bit
+
+===
+
+512 bit
+
++++
+
+GOST-28147-89 shifrlash algoritmi necha raunddan iborat?
+
+===
+
+#32
+
+===
+
+16
+
+===
+
+8
+
+===
+
+64
+
++++
+
+DES shifrlash algoritmida nechta S-blok bor?
+
+===
+
+#8 ta
+
+===
+
+4 ta
+
+===
+
+16 ta
+
+===
+
+32 ta
+
++++
+
+AES shifrlash standarti qaysi algoritmga asoslangan?
+
+===
+
+#Rijndael
+
+===
+
+Blowfish
+
+===
+
+Serpent
+
+===
+
+Twofish
+
++++
+
+O'zDSt 1105:2009 ma'lumotlarni shifrlash standarti necha raunddan iborat?
+
+===
+
+10
+
+===
+
+16
+
+===
+
+32
+
+===
+
+#8
+
++++
+
+Gammalashtirish rejimi qaysi shifrlash algoritmiga tegishli?
+
+===
+
+#GOST 28147-89
+
+===
+
+RSA
+
+===
+
+MD5
+
+===
+
+El-Gamal
+
++++
+
+GOST-28147-89 shifrlash algoritmida kalitlarni shifrlash uchun qaysi rejimdan foydalanadi?
+
+===
+
+#Oddiy almashtirish rejimi
+
+===
+
+Gammalashtirish rejimi
+
+===
+
+Teskari aloqali gammalashtirish rejimi
+
+===
+
+Imitovstavka (MAC) hosil qilish rejimi
+
++++
+
+DES shifrlash algoritmida shifrlash funksiyasida nimalardan foydalaniladi?
+
+===
+
+#E kengaytirish, kalit bilan XOR, S-bloklar va P o'rin almashtirish
+
+===
+
+Faqat S-bloklar
+
+===
+
+Faqat siklik siljitish va mod 2^32 qo'shish
+
+===
+
+Faqat faktorlash va darajaga oshirish
+
++++
+
+GOST 28147-89 algoritmining barcha rejimlarida qo'llaniladigan almashtirishni ko'rsating.
+
+===
+
+#Asosiy qadam (32-Z almashtirish, 32 raundli shifrlash)
+
+===
+
+Faqat kalitni kengaytirish almashtirishi
+
+===
+
+Faqat xeshlash almashtirishi
+
+===
+
+Faqat ochiq kalitli almashtirish
+
++++
+
+DES algoritmida raund natijasi quyidagilardan qaysi biriga teng?
+
+===
+
+#Li = Ri-1, Ri = Li-1 ⊕ F(Ri-1, Ki)
+
+===
+
+Li = Ri-1 ⊕ F(Li-1, Ki), Ri = Li-1
+
+===
+
+Li = Li-1 ⊕ Ri-1, Ri = F(Ri-1, Ki)
+
+===
+
+Li = Ri-1 ⊕ Ki, Ri = Li-1
+
++++
+
+GOST 28147-89 algoritmining oxirgi raundida qo'llaniladigan almashtirishni ko'rsating.
+
+===
+
+#Chap va o'ng yarimlar o'rin almashtirilmaydi
+
+===
+
+Chap va o'ng yarimlar o'rin almashtiriladi
+
+===
+
+Kalit ikki marta qo'shiladi
+
+===
+
+S-bloklar qo'llanilmaydi
+
++++
+
+Ochiq kalitli kriptotizimlar qanday turdagi bir tomonlama akslantirishlarga asoslangan?
+
+===
+
+#Maxfiy eshikli (yashirin yo'lli) bir tomonlama funksiyalarga
+
+===
+
+Chiziqli akslantirishlarga
+
+===
+
+Siklik siljitish akslantirishlariga
+
+===
+
+O'rin almashtirish akslantirishlariga
+
++++
+
+Qaysi algoritmlar ERI sxemasini ifodalaydi?
+
+===
+
+#RSA, El-Gamal, DSA, ECDSA, GOST R 34.10-2001
+
+===
+
+DES, AES, GOST 28147-89
+
+===
+
+MD5, SHA-1, SHA-256
+
+===
+
+Blowfish, RC4
+
++++
+
+Elektron raqamli imzo nima?
+
+===
+
+#Elektron hujjatga biriktiriladigan, maxfiy kalit yordamida hosil qilinib, hujjat muallifligi va yaxlitligini tasdiqlovchi rekvizit
+
+===
+
+Hujjatni shifrlash uchun ishlatiladigan kalit
+
+===
+
+Hujjatning xesh qiymatini yashirish usuli
+
+===
+
+Hujjatni siqish algoritmi
+
++++
+
+Mavjud barcha kriptografik usullar qanday almashtirishlarga asoslangan?
+
+===
+
+#O'rniga qo'yish, o'rin almashtirish va gammalash
+
+===
+
+Faqat o'rniga qo'yish
+
+===
+
+Faqat faktorlash va diskret logarifm
+
+===
+
+Faqat xeshlash va kodlash
+
++++
+
+Quyida keltirilgan algoritmlardan blokli shifrlash algoritmlarini ko'rsating: GOST 28147-89, O'zDSt 1105:2009, RSA, MD5, AES.
+
+===
+
+#GOST 28147-89, O'zDSt 1105:2009, AES
+
+===
+
+RSA, MD5
+
+===
+
+GOST 28147-89, RSA, MD5
+
+===
+
+O'zDSt 1105:2009, MD5, AES
+
++++
+
+Quyida keltirilgan algoritmlardan oqimli shifrlash algoritmlarini ko'rsating: GOST 28147-89, O'zDSt 1105:2009, RC4, MD5, AES, RC4, SEAL, WAKE.
+
+===
+
+#RC4, SEAL, WAKE
+
+===
+
+GOST 28147-89, AES, RC4
+
+===
+
+O'zDSt 1105:2009, MD5, SEAL
+
+===
+
+MD5, AES, WAKE
+
++++
+
+GOST 28147-89 algoritmining asosiy xarakteristikalarini ko'rsating.
+
+===
+
+#Blok 64 bit, kalit 256 bit, 32 raund, Feistel tarmog'i
+
+===
+
+Blok 128 bit, kalit 128 bit, 10 raund, SP-tarmoq
+
+===
+
+Blok 64 bit, kalit 56 bit, 16 raund, Feistel tarmog'i
+
+===
+
+Blok 256 bit, kalit 512 bit, 8 raund, SP-tarmoq
+
++++
+
+DES algoritmining asosiy muammosi nimada?
+
+===
+
+#Kalit uzunligining qisqaligi (56 bit), shuning uchun to'liq tanlash hujumiga bardoshsiz
+
+===
+
+Blok uzunligining juda kattaligi
+
+===
+
+Raundlar sonining haddan tashqari ko'pligi
+
+===
+
+Ochiq kalit ishlatilishi
+
++++
+
+Asimmetrik kriptotizimlar qanday maqsadlarda ishlatiladi?
+
+===
+
+#Shifrlash, elektron raqamli imzo va kalitlarni almashish (taqsimlash) uchun
+
+===
+
+Faqat katta hajmdagi ma'lumotni tez shifrlash uchun
+
+===
+
+Faqat ma'lumotlarni siqish uchun
+
+===
+
+Faqat xesh qiymat hisoblash uchun
+
++++
+
+Diffi-Xellman algoritmining maqsadi nimadan iborat?
+
+===
+
+#Ochiq aloqa kanali orqali ikki tomon o'rtasida umumiy maxfiy kalitni hosil qilish
+
+===
+
+Xabarni shifrlash
+
+===
+
+Xabarning xesh qiymatini hisoblash
+
+===
+
+Xabarga raqamli imzo qo'yish
+
++++
+
+Xabarning autentifikatori sifatida ishlatilishi uchun xesh funksiya qanday talablarga mos kelishi kerak?
+
+===
+
+#Ixtiyoriy uzunlikdagi xabarga qo'llanilishi, chiqishi qat'iy uzunlikda bo'lishi, hisoblash oson, bir tomonlama bo'lishi va kolliziyaga chidamli bo'lishi
+
+===
+
+Faqat qat'iy uzunlikdagi xabarga qo'llanilishi
+
+===
+
+Teskari akslantirishi mavjud bo'lishi
+
+===
+
+Chiqish uzunligi kirish uzunligiga teng bo'lishi
+
++++
+
+MD5 qanday xossalarga ega?
+
+===
+
+#128 bitli xesh qiymat hosil qiladi, 512 bitli bloklar bilan ishlaydi, kolliziyalar topilgani uchun buzilgan
+
+===
+
+160 bitli xesh qiymat hosil qiladi, 80 raund
+
+===
+
+256 bitli xesh qiymat hosil qiladi, 64 raund
+
+===
+
+512 bitli xesh qiymat hosil qiladi, 1024 bitli bloklar bilan ishlaydi
+
++++
+
+SHA-1 xesh algoritmiga quyidagilarning qaysi biri mos keladi?
+
+===
+
+#Xesh qiymat 160 bit, blok 512 bit, 80 qadam
+
+===
+
+Xesh qiymat 128 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh qiymat 256 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh qiymat 512 bit, blok 1024 bit, 80 qadam
+
++++
+
+MD5 xesh funksiya qanaqa xarakteristikaga ega?
+
+===
+
+#Xesh 128 bit, blok 512 bit, 64 qadam (4 raund x 16)
+
+===
+
+Xesh 160 bit, blok 512 bit, 80 qadam
+
+===
+
+Xesh 256 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh 512 bit, blok 1024 bit, 80 qadam
+
++++
+
+SHA-1 xesh funksiya qanaqa xarakteristikaga ega?
+
+===
+
+#Xesh 160 bit, blok 512 bit, 80 qadam
+
+===
+
+Xesh 128 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh 256 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh 512 bit, blok 1024 bit, 80 qadam
+
++++
+
+SHA-256 xesh funksiya qanaqa xarakteristikaga ega?
+
+===
+
+#Xesh 256 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh 160 bit, blok 512 bit, 80 qadam
+
+===
+
+Xesh 128 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh 512 bit, blok 1024 bit, 80 qadam
+
++++
+
+SHA-512 xesh funksiya qanaqa xarakteristikaga ega?
+
+===
+
+#Xesh 512 bit, blok 1024 bit, 80 qadam
+
+===
+
+Xesh 256 bit, blok 512 bit, 64 qadam
+
+===
+
+Xesh 160 bit, blok 512 bit, 80 qadam
+
+===
+
+Xesh 128 bit, blok 512 bit, 64 qadam
+
++++
+
+GOST 34.11 xesh funksiya qanaqa xarakteristikaga ega?
+
+===
+
+#Xesh qiymat 256 bit, GOST 28147-89 shifrlash algoritmi asosida qurilgan
+
+===
+
+Xesh qiymat 160 bit, SHA-1 asosida qurilgan
+
+===
+
+Xesh qiymat 128 bit, MD5 asosida qurilgan
+
+===
+
+Xesh qiymat 512 bit, AES asosida qurilgan
+
++++
+
+DSS raqamli imzo standartida qaysi xesh-algoritm ishlatiladi?
+
+===
+
+#SHA-1
+
+===
+
+MD5
+
+===
+
+GOST 34.11
+
+===
+
+RIPEMD-128
+
++++
+
+GOST 34.10 raqamli imzo standartida qaysi xesh-algoritm ishlatiladi?
+
+===
+
+#GOST 34.11
+
+===
+
+SHA-1
+
+===
+
+MD5
+
+===
+
+SHA-256
+
++++
+
+GOST 34.10 va DSS raqamli imzo standartlarining farqi nimada?
+
+===
+
+#Ishlatiladigan xesh funksiyalari (GOST 34.11 va SHA-1), imzoni hisoblash va tekshirish tenglamalari hamda parametrlar uzunligi farq qiladi
+
+===
+
+Birida simmetrik, ikkinchisida asimmetrik kalit ishlatiladi
+
+===
+
+Birida imzo shifrlash uchun, ikkinchisida siqish uchun ishlatiladi
+
+===
+
+Ular orasida hech qanday farq yo'q
+
++++
+
+Nisbatan mashhur bo'lgan xesh-funksiyalarni ko'rsating.
+
+===
+
+#MD5, SHA-1, SHA-256, SHA-512, GOST 34.11
+
+===
+
+DES, AES, GOST 28147-89
+
+===
+
+RSA, El-Gamal, Diffi-Xellman
+
+===
+
+RC4, A5, SEAL
+
++++
+
+Amaliyotda qo'llanilishi uchun xesh funksiyalar qanday talablarni bajarishi lozim?
+
+===
+
+#Bir tomonlama bo'lishi, kolliziyaga chidamli bo'lishi, hisoblash tez va oson bo'lishi, ixtiyoriy uzunlikdagi kirishni qat'iy uzunlikka akslantirishi
+
+===
+
+Teskarisi oson hisoblanishi
+
+===
+
+Kolliziyalar ko'p bo'lishi
+
+===
+
+Chiqish uzunligi kirish uzunligiga teng bo'lishi
+
++++
+
+Davlat yoki xalqaro standart sifatida ishlatilayotgan blokli shifrlash algoritmlarini ko'rsating.
+
+===
+
+#DES, AES, GOST 28147-89, O'zDSt 1105:2009
+
+===
+
+RC4, SEAL, WAKE, A5
+
+===
+
+RSA, El-Gamal, ECDSA
+
+===
+
+MD5, SHA-1, SHA-256
+
++++
+
+S-boxlar nima maqsadda yaratilgan?
+
+===
+
+#Chiziqsizlikni ta'minlash va kalit hamda shifrmatn orasidagi bog'liqlikni murakkablashtirish (chalkashtirish) uchun
+
+===
+
+Matn hajmini kamaytirish uchun
+
+===
+
+Ochiq kalitni hosil qilish uchun
+
+===
+
+Xesh qiymatni hisoblash uchun
+
++++
+
+Simmetrik algoritmlarni xavfsizligini ta'minlovchi omillarni ko'rsating?
+
+===
+
+#Kalitning maxfiyligi, kalit uzunligi va algoritmning kriptobardoshliligi
+
+===
+
+Algoritmning maxfiyligi
+
+===
+
+Shifrmatn uzunligi
+
+===
+
+Foydalanuvchilar soni
+
++++
+
+Kriptotizim quyidagi komponentlarning qaysi biridan iborat?
+
+===
+
+#Ochiq matn, shifrmatn, kalitlar, shifrlash va deshifrlash algoritmlari
+
+===
+
+Faqat shifrlash algoritmi
+
+===
+
+Faqat kalitlar to'plami
+
+===
+
+Faqat ochiq matn va shifrmatn
+
++++
+
+Hujjatni ERIni tekshirish nimaga keltiriladi?
+
+===
+
+#Imzodan olingan va hujjatdan hisoblangan xesh qiymatlarni solishtirishga
+
+===
+
+Hujjatni qayta shifrlashga
+
+===
+
+Hujjatni siqishga
+
+===
+
+Maxfiy kalitni aniqlashga
+
++++
+
+O'zDSt 1105:2009 shifrlash algoritmi qanaqa kalit uzunligidan foydalanadi?
+
+===
+
+#256 yoki 512 bit
+
+===
+
+56 bit
+
+===
+
+64 yoki 128 bit
+
+===
+
+128 yoki 192 bit
+
++++
+
+O'zDSt 1105:2009 shifrlash algoritmi bilan axborotlarni shifrlashda blok uzunligi necha bitdan iborat?
+
+===
+
+#256 bit
+
+===
+
+64 bit
+
+===
+
+128 bit
+
+===
+
+512 bit
+
++++
+
+Serpent, Square, Twofish, RC6 algoritmlari qaysi turga mansub?
+
+===
+
+#Simmetrik blokli shifrlash algoritmlari
+
+===
+
+Oqimli shifrlash algoritmlari
+
+===
+
+Asimmetrik kriptotizimlar
+
+===
+
+Xesh funksiyalar
+
++++
+
+GOST 28147-89 algoritmi uchun o'rinli bo'lgan xususiyatni ko'rsating.
+
+===
+
+#Feistel tarmog'iga asoslangan, 64 bitli blok, 256 bitli kalit, 32 raund
+
+===
+
+SP-tarmoqqa asoslangan, 128 bitli blok
+
+===
+
+Ochiq kalitli algoritm
+
+===
+
+Oqimli shifr
+
++++
+
+Simmetrik shifrlash algoritmlari blokli deyiladi, agar …
+
+===
+
+#ochiq matn qat'iy uzunlikdagi bloklarga bo'linib, har bir blok shifrlanib shifrmatn bloki hosil qilinsa
+
+===
+
+ochiq matn belgilari ketma-ket bitta-bittadan gamma bilan shifrlansa
+
+===
+
+shifrlash uchun ochiq va yopiq kalitlar ishlatilsa
+
+===
+
+ochiq matndan qat'iy uzunlikdagi qaytmas qiymat hosil qilinsa
+
++++
+
+Xesh-funksiyani natijasi …
+
+===
+
+#qat'iy uzunlikdagi xesh qiymat (xesh kod)
+
+===
+
+ochiq matnning o'zi
+
+===
+
+shifrlash kaliti
+
+===
+
+kirish uzunligiga teng shifrmatn
+
++++
+
+AES algoritmi bloki uzunligi … bit?
+
+===
+
+#128
+
+===
+
+64
+
+===
+
+256
+
+===
+
+512
+
++++
+
+Elliptik egri chiziqqa asoslangan kriptografiyani boshqa algoritmlarga nisbatan yutug'i nimada?
+
+===
+
+#Qisqaroq kalit uzunligi bilan bir xil darajadagi kriptobardoshlilikka erishiladi
+
+===
+
+Simmetrik kalit ishlatiladi
+
+===
+
+Hisoblash umuman talab qilinmaydi
+
+===
+
+Kalit uzunligi RSA ga qaraganda ancha katta bo'ladi
+
++++
+
+Elliptik egri chiziqning tenglamasi umumiy holda qaysi ko'rinishga ega?
+
+===
+
+#y² = x³ + ax + b
+
+===
+
+y = ax² + bx + c
+
+===
+
+y³ = x² + ax + b
+
+===
+
+x² + y² = r²
+
++++
+
+AES shifrlash algoritmi oxirgi raundidan boshqa barcha raundlarda qanday amallar bajariladi?
+
+===
+
+#SubBytes, ShiftRows, MixColumns, AddRoundKey
+
+===
+
+Faqat SubBytes va ShiftRows
+
+===
+
+Faqat MixColumns va AddRoundKey
+
+===
+
+Kengaytirish (E), S-bloklar va P o'rin almashtirish
+
++++
+
+AES shifrlash algoritmi oxirgi raundida boshqa raundlarda bajariladigan qanday amal bajarilmaydi?
+
+===
+
+#MixColumns
+
+===
+
+SubBytes
+
+===
+
+ShiftRows
+
+===
+
+AddRoundKey
+
++++
+
+Lavin effekti nima?
+
+===
+
+#Kirish matni yoki kalitdagi bitta bitning o'zgarishi shifrmatndagi ko'p bitlarning (taxminan yarmining) o'zgarishiga olib kelishi
+
+===
+
+Kalit uzunligining ortishi bilan shifrlash tezligining oshishi
+
+===
+
+Shifrmatnning ochiq matnga teng bo'lishi
+
+===
+
+Xesh qiymatning kirish uzunligiga teng bo'lishi
+
++++
+
+Kriptografiyada xesh funksiyalar qanday masalalarni hal qilishda qo'llaniladi?
+
+===
+
+#Ma'lumot yaxlitligini tekshirish, elektron raqamli imzo, autentifikatsiya va parollarni saqlash
+
+===
+
+Katta hajmdagi ma'lumotni shifrlash
+
+===
+
+Kalitlarni almashish
+
+===
+
+Ma'lumotni deshifrlash
+
++++
+
+Square, Twofish, RC4, RSA shifrlaridan qaysi biri oqimli shifrdir?
+
+===
+
+#RC4
+
+===
+
+Square
+
+===
+
+Twofish
+
+===
+
+RSA
+
++++
+
+RC4 oqimli shifrida qo'llaniladigan o'rniga qo'yish jadvali o'lchami qanday?
+
+===
+
+#256 bayt (S[0..255])
+
+===
+
+64 bayt
+
+===
+
+128 bayt
+
+===
+
+512 bayt
+
++++
+
+RC4 oqimli shifridagi holatlar soni qancha?
+
+===
+
+#256! · 256² ≈ 2^1700
+
+===
+
+2^256
+
+===
+
+2^64
+
+===
+
+2^128
+
++++
+
+RC4 oqimli shifrida S-blok o'rniga qo'yish jadvalidagi aralashtirish qaysi formula bilan amalga oshadi?
+
+===
+
+#j = (j + S[i] + K[i mod L]) mod 256, so'ng S[i] va S[j] o'rin almashtiriladi
+
+===
+
+C = M^e mod n
+
+===
+
+j = (j · S[i]) mod 255
+
+===
+
+Li = Ri-1, Ri = Li-1 ⊕ F(Ri-1, Ki)
+
++++
+
+DES shifrlash algoritmining asosiy yutug'i nimadan iborat?
+
+===
+
+#Standart bo'lib keng tarqalgan; Feistel tarmog'i tufayli shifrlash va deshifrlash bir xil algoritm bilan bajariladi, apparat va dasturiy amalga oshirish oson
+
+===
+
+Kalit uzunligi juda katta (512 bit)
+
+===
+
+Ochiq kalit ishlatadi
+
+===
+
+Kriptotahlilga mutlaqo bardoshli
+
++++
+
+Square, Twofish, A5, RSA shifrlaridan qaysi biri mobil aloqa xavfsizligini ta'minlashda ishlatiladi?
+
+===
+
+#A5
+
+===
+
+Square
+
+===
+
+Twofish
+
+===
+
+RSA
+
++++
+
+A5/1 oqimli shifrlash algoritmida psevdotasodifiy ketma-ketlikni hosil qilishda foydalaniladigan chiziqli teskari aloqali siljitish registrlari soni qancha?
+
+===
+
+#3 ta
+
+===
+
+2 ta
+
+===
+
+4 ta
+
+===
+
+5 ta
+
++++
+
+A5/1 oqimli shifrlash algoritmida psevdotasodifiy ketma-ketlikni hosil qilishda foydalaniladigan chiziqli teskari aloqali siljitish registrlari uzunliklari necha bitdan iborat?
+
+===
+
+#19, 22 va 23 bit
+
+===
+
+16, 24 va 32 bit
+
+===
+
+8, 16 va 32 bit
+
+===
+
+32, 32 va 32 bit
+
++++
+
+GOST 28147-89, AES, RSA, El-Gamal shifrlash algoritmlarining qaysi biri SP tarmog'iga asoslangan?
+
+===
+
+#AES
+
+===
+
+GOST 28147-89
+
+===
+
+RSA
+
+===
+
+El-Gamal
+
++++
+
+AES shifrlash algoritmining asosiy xarakteristikalari to'g'ri ko'rsatilgan satrni toping.
+
+===
+
+#Blok 128 bit, kalit 128/192/256 bit, raundlar 10/12/14, SP-tarmoq
+
+===
+
+Blok 64 bit, kalit 56 bit, raundlar 16, Feistel tarmog'i
+
+===
+
+Blok 128 bit, kalit 256 bit, raundlar 32, Feistel tarmog'i
+
+===
+
+Blok 256 bit, kalit 512 bit, raundlar 8, SP-tarmoq
+
++++
+
+Qaysi blokli shifrlash algoritmining raundlari soni 10, 12 yoki 14 ga teng?
+
+===
+
+#AES
+
+===
+
+DES
+
+===
+
+GOST 28147-89
+
+===
+
+Blowfish
+
++++
+
+AES-128 shifrlash algoritmining asosiy yutuqlaridan birini toping.
+
+===
+
+#Yuqori kriptobardoshlilik bilan birga dasturiy va apparat amalga oshirishda yuqori tezlik
+
+===
+
+Ochiq kalit ishlatilishi
+
+===
+
+Kalit uzunligining faqat 56 bit bo'lishi
+
+===
+
+Shifrlash va deshifrlash uchun turli kalitlar kerak bo'lishi
+
++++
+
+AES-128 shifrlash algoritmida SubBytes almashtirishi nima vazifani bajaradi?
+
+===
+
+#Holatdagi har bir baytni S-blok jadvali bo'yicha almashtiradi (chiziqsizlikni ta'minlaydi)
+
+===
+
+Qatorlarni siklik siljitadi
+
+===
+
+Ustunlarni matritsaga ko'paytiradi
+
+===
+
+Holatni raund kaliti bilan XOR qiladi
+
++++
+
+AES-128 shifrlash algoritmida ShiftRows almashtirishi nima vazifani bajaradi?
+
+===
+
+#Holat matritsasi qatorlarini turlicha miqdorda (0, 1, 2, 3 bayt) siklik chapga siljitadi
+
+===
+
+Har bir baytni S-blok bo'yicha almashtiradi
+
+===
+
+Ustunlarni GF(2^8) da matritsaga ko'paytiradi
+
+===
+
+Holatni raund kaliti bilan XOR qiladi
+
++++
+
+AES-128 shifrlash algoritmida MixColumns bosqichi nima qiladi?
+
+===
+
+#Holatning har bir ustunini GF(2^8) maydonida qat'iy matritsaga ko'paytirib, baytlarni aralashtiradi (diffuziya)
+
+===
+
+Qatorlarni siklik siljitadi
+
+===
+
+Har bir baytni S-blok bo'yicha almashtiradi
+
+===
+
+Raund kalitini hosil qiladi
+
++++
+
+AES-128 shifrlash algoritmida AddRoundKey bosqichi nima bajaradi?
+
+===
+
+#Holatni raund kaliti bilan bitli XOR qiladi
+
+===
+
+Holatni S-blok bo'yicha almashtiradi
+
+===
+
+Qatorlarni siklik siljitadi
+
+===
+
+Ustunlarni matritsaga ko'paytiradi
+
++++
+
+MD5 xeshlash algoritmida T(i) massiv elementlari hisoblanadigan formulani ko'rsating.
+
+===
+
+#T(i) = butun qismi (2^32 · |sin(i)|), i radianda
+
+===
+
+T(i) = butun qismi (2^32 · cos(i))
+
+===
+
+T(i) = 2^i mod 2^32
+
+===
+
+T(i) = i² mod 2^32
+
++++
+
+MD5 xeshlash algoritmida nechta mantiqiy funksiyadan foydalaniladi?
+
+===
+
+#4 ta
+
+===
+
+2 ta
+
+===
+
+3 ta
+
+===
+
+5 ta
+
++++
+
+MD5 xeshlash algoritmida siklik surilishlar parametrlarini belgilaydigan nechta massivdan foydalaniladi?
+
+===
+
+#4 ta
+
+===
+
+1 ta
+
+===
+
+2 ta
+
+===
+
+8 ta
+
++++
+
+MD5 xeshlash algoritmida bufer nechta registrdan tashkil topgan?
+
+===
+
+#4 ta (A, B, C, D, har biri 32 bit)
+
+===
+
+2 ta
+
+===
+
+5 ta
+
+===
+
+8 ta
+
++++
+
+MD5 xeshlash algoritmi 1-chi raundida qanday amal bajariladi?
+
+===
+
+#F(X,Y,Z) = (X ∧ Y) ∨ (¬X ∧ Z)
+
+===
+
+G(X,Y,Z) = (X ∧ Z) ∨ (Y ∧ ¬Z)
+
+===
+
+H(X,Y,Z) = X ⊕ Y ⊕ Z
+
+===
+
+I(X,Y,Z) = Y ⊕ (X ∨ ¬Z)
+
++++
+
+MD5 xeshlash algoritmi 2-chi raundida qanday amal bajariladi?
+
+===
+
+#G(X,Y,Z) = (X ∧ Z) ∨ (Y ∧ ¬Z)
+
+===
+
+F(X,Y,Z) = (X ∧ Y) ∨ (¬X ∧ Z)
+
+===
+
+H(X,Y,Z) = X ⊕ Y ⊕ Z
+
+===
+
+I(X,Y,Z) = Y ⊕ (X ∨ ¬Z)
+
++++
+
+MD5 xeshlash algoritmi 3-chi raundida qanday amal bajariladi?
+
+===
+
+#H(X,Y,Z) = X ⊕ Y ⊕ Z
+
+===
+
+F(X,Y,Z) = (X ∧ Y) ∨ (¬X ∧ Z)
+
+===
+
+G(X,Y,Z) = (X ∧ Z) ∨ (Y ∧ ¬Z)
+
+===
+
+I(X,Y,Z) = Y ⊕ (X ∨ ¬Z)
+
++++
+
+MD5 xeshlash algoritmi 4-chi raundida qanday amal bajariladi?
+
+===
+
+#I(X,Y,Z) = Y ⊕ (X ∨ ¬Z)
+
+===
+
+F(X,Y,Z) = (X ∧ Y) ∨ (¬X ∧ Z)
+
+===
+
+G(X,Y,Z) = (X ∧ Z) ∨ (Y ∧ ¬Z)
+
+===
+
+H(X,Y,Z) = X ⊕ Y ⊕ Z
+
++++
+
+ElGamal kriptotizimida m xabarni shifrlashda foydalaniladigan ochiq va yopiq kalitlarni ko'rsating.
+
+===
+
+#Ochiq kalit: (p, g, y = g^x mod p); yopiq kalit: x
+
+===
+
+Ochiq kalit: x; yopiq kalit: (p, g, y)
+
+===
+
+Ochiq kalit: (e, n); yopiq kalit: d
+
+===
+
+Ochiq kalit: (p, q); yopiq kalit: g
+
++++
+
+RSA ERI da m xabarni imzolash qanday amalga oshiriladi?
+
+===
+
+#S = m^d mod n (maxfiy kalit bilan)
+
+===
+
+S = m^e mod n
+
+===
+
+S = d^m mod n
+
+===
+
+S = m^d mod e
+
++++
+
+RSA ERI da C imzoni tekshirish qanday amalga oshiriladi?
+
+===
+
+#m' = C^e mod n hisoblanib, m bilan (xesh bilan) solishtiriladi
+
+===
+
+m' = C^d mod n hisoblanadi
+
+===
+
+m' = e^C mod n hisoblanadi
+
+===
+
+m' = C^e mod d hisoblanadi
+
++++
+
+Amaliyotda RSA kriptotizimi bo'yicha shifrlash tezligini oshirish uchun nima qilinadi?
+
+===
+
+#Ochiq kalit e kichik (masalan, 3, 17, 65537) qilib tanlanadi
+
+===
+
+Ochiq kalit e juda katta qilib tanlanadi
+
+===
+
+Modul n kichik qilib tanlanadi
+
+===
+
+Maxfiy kalit d ochiq e'lon qilinadi
+
++++
+
+ElGamal ERI bo'yicha M xabarni imzolash qanday amalga oshiriladi?
+
+===
+
+#k tanlanadi (EKUB(k, p-1) = 1), a = g^k mod p, b = (M - x·a)·k^(-1) mod (p-1); imzo (a, b)
+
+===
+
+a = M^e mod n, b = M^d mod n
+
+===
+
+a = g^M mod p, b = x^k mod p
+
+===
+
+a = k^g mod p, b = (M + x)·k mod p
+
++++
+
+ElGamal ERI bo'yicha M xabarni imzosi (a, b) qanday tekshiriladi?
+
+===
+
+#y^a · a^b ≡ g^M (mod p) tengligi tekshiriladi
+
+===
+
+a^b ≡ g^M (mod p) tengligi tekshiriladi
+
+===
+
+y^b · a^a ≡ g^M (mod p) tengligi tekshiriladi
+
+===
+
+M^e ≡ a (mod n) tengligi tekshiriladi
+
++++
+
+Gibrid kriptotizimlar deyilganda nima tushuniladi?
+
+===
+
+#Simmetrik va asimmetrik kriptotizimlarning afzalliklarini birlashtirgan tizimlar: ma'lumot simmetrik kalit bilan shifrlanadi, seans kaliti ochiq kalit bilan uzatiladi
+
+===
+
+Faqat ikkita simmetrik algoritmni ketma-ket qo'llash
+
+===
+
+Faqat xesh funksiya va ERI birgalikda qo'llanishi
+
+===
+
+Klassik va zamonaviy shifrlarni aralashtirish
+
++++
+
+Elektron raqamli imzoda foydalanuvchi kriptotizimlar …
+
+===
+
+#asimmetrik (ochiq kalitli) kriptotizimlardir
+
+===
+
+simmetrik kriptotizimlardir
+
+===
+
+oqimli shifrlardir
+
+===
+
+o'rin almashtirish shifrlaridir
+
++++
+
+Elliptik egri chiziqlarga asoslangan kriptotizimlar …
+
+===
+
+#elliptik egri chiziq nuqtalari guruhida diskret logarifmlash masalasiga asoslangan ochiq kalitli kriptotizimlardir
+
+===
+
+Feistel tarmog'iga asoslangan simmetrik shifrlardir
+
+===
+
+faqat xesh funksiyalardir
+
+===
+
+oqimli shifrlardir
+
++++
+
+DSS raqamli imzo standartida qaysi parametrlar ochiq va yopiq kalitlar vazifasini bajaradi?
+
+===
+
+#Ochiq kalit y = g^x mod p; yopiq kalit x
+
+===
+
+Ochiq kalit x; yopiq kalit y = g^x mod p
+
+===
+
+Ochiq kalit (e, n); yopiq kalit d
+
+===
+
+Ochiq kalit k; yopiq kalit q
+
++++
+
+DSS ERI standartida qanday xesh funksiyadan foydalanishini ko'rsating.
+
+===
+
+#SHA-1
+
+===
+
+MD5
+
+===
+
+GOST 34.11
+
+===
+
+RIPEMD-128
+
++++
+
+GOST 34.10-2001 ERI standartida foydalaniladigan elliptik egri chiziqdagi nuqtalar soni qancha?
+
+===
+
+#2^255 tartibidagi katta son
+
+===
+
+Doim 160 bit
+
+===
+
+Doim 1024 bit
+
+===
+
+Nuqtalar soni cheksiz
+
++++
+
+GOST 34.10-2001 ERI standartida qanday xesh funksiyadan foydalanishini ko'rsating.
+
+===
+
+#GOST R 34.11-94
+
+===
+
+SHA-1
+
+===
+
+MD5
+
+===
+
+SHA-512
+
++++
+
+GOST 34.10-2001 ERI standarti nimaga asoslangan?
+
+===
+
+#Elliptik egri chiziqdagi diskret logarifmlash masalasiga
+
+===
+
+Katta sonlarni faktorlash masalasiga
+
+===
+
+Chekli maydondagi diskret logarifm masalasiga (GF(p))
+
+===
+
+Feistel tarmog'iga
+
++++
+
+O'zDSt 1092:2009 ERI standartining matematik asosi nimaga asoslangan?
+
+===
+
+#Chekli maydonda daraja parametrini topish (diskret logarifm) muammosining murakkabligiga
+
+===
+
+Elliptik egri chiziqlarga
+
+===
+
+Katta sonlarni faktorlash murakkabligiga
+
+===
+
+Feistel tarmog'iga
+
++++
+
+O'zDSt 1092:2009 ERI standartida ERIni shakllantirish va haqiqiyligini tasdiqlash uchun qanday rejimlar qo'llaniladi?
+
+===
+
+#ERI shakllantirish rejimi va ERI haqiqiyligini tekshirish rejimi
+
+===
+
+Faqat shifrlash rejimi
+
+===
+
+ECB va CBC rejimlari
+
+===
+
+Faqat xeshlash rejimi
+
++++
+
+O'zDSt 1092:2009 ERI standarti qanday jarayonlardan tashkil topgan?
+
+===
+
+#ERIni shakllantirish va ERIni tekshirish jarayonlaridan
+
+===
+
+Shifrlash va deshifrlash jarayonlaridan
+
+===
+
+Faqat kalitlarni almashish jarayonidan
+
+===
+
+Faqat xeshlash jarayonidan
+
++++
+
+O'zDSt 1092:2009 ERI standartini dasturiy amalga oshirishda modul p qanday tanlanadi?
+
+===
+
+#p tub son bo'lib, p - 1 ning katta tub bo'luvchisi q mavjud bo'ladi (q | p - 1)
+
+===
+
+p ixtiyoriy juft son
+
+===
+
+p = q · r ko'rinishidagi murakkab son
+
+===
+
+p = 2^32
+
++++
+
+Teskari aloqali siljitish registrlarini zamonaviy kriptografiyada qo'llanilishidan asosiy maqsad nima?
+
+===
+
+#Oqimli shifrlarda psevdotasodifiy ketma-ketliklar (gamma) hosil qilish
+
+===
+
+Katta sonlarni faktorlash
+
+===
+
+Ochiq kalitni hosil qilish
+
+===
+
+Xesh qiymatni kamaytirish
+
++++
+
+AQShning Milliy standartlar va texnologiyalar instituti psevdotasodifiylikka tekshiruvchi nechta test ishlab chiqqan?
+
+===
+
+#15 ta
+
+===
+
+5 ta
+
+===
+
+10 ta
+
+===
+
+20 ta
+
++++
+
+Psevdotasodifiy ketma-ketliklarni generatsiya qilishda nima sababdan teskari aloqali siljitish registrlari soni ko'paytiriladi?
+
+===
+
+#Ketma-ketlik davrini va chiziqli murakkablikni oshirish, ya'ni kriptobardoshlilikni oshirish uchun
+
+===
+
+Shifrlash tezligini kamaytirish uchun
+
+===
+
+Kalit uzunligini qisqartirish uchun
+
+===
+
+Ochiq kalitni hosil qilish uchun
+
++++
+
+Kalitlarni bardoshligi qanday baholanadi?
+
+===
+
+#Kalitlarning mumkin bo'lgan soni va uni to'liq tanlash uchun zarur hisoblash murakkabligi bilan
+
+===
+
+Kalitning ko'rinishi bilan
+
+===
+
+Shifrlash tezligi bilan
+
+===
+
+Foydalanuvchilar soni bilan
+
++++
+
+Seansli kalitlarni generatsiya qilishning ANSI X9.17 standartida kalitlarni generatsiya qilishda foydalanish uchun tavsiya qilingan blokli shifrlash algoritmini toping.
+
+===
+
+#3DES (uch karrali DES)
+
+===
+
+AES
+
+===
+
+Blowfish
+
+===
+
+GOST 28147-89
+
++++
+
+Seansli kalitlarni generatsiya qilishning ANSI X9.17 standartiga ko'ra kalitlar qanday turlarga bo'linadi?
+
+===
+
+#Seans (ma'lumot) kalitlari va kalitlarni shifrlovchi (asosiy) kalitlar
+
+===
+
+Ochiq va yopiq kalitlar
+
+===
+
+Qisqa va uzun kalitlar
+
+===
+
+Raund va dastlabki kalitlar
+
++++
+
+Hozirgi vaqtda simmetrik kriptotizimlar uchun uzunligi necha bit bo'lgan kalitlarni ishonchli deb hisoblash qabul qilingan?
+
+===
+
+#128 bit va undan ortiq
+
+===
+
+40 bit
+
+===
+
+56 bit
+
+===
+
+64 bit
+
++++
+
+Hozirgi vaqtda asimmetrik kriptotizimlar uchun uzunligi necha bit bo'lgan kalitlarni ishonchli deb hisoblash qabul qilingan?
+
+===
+
+#2048 bit va undan ortiq
+
+===
+
+256 bit
+
+===
+
+512 bit
+
+===
+
+1024 bit dan kam
+
++++
+
+Simmetrik kriptotizimlarda kalitlarni tarqatish nimaga asoslangan?
+
+===
+
+#Ishonchli uchinchi tomon (kalitlarni tarqatish markazi) va oldindan taqsimlangan asosiy kalitlarga
+
+===
+
+Ochiq kalit va yopiq kalit juftligiga
+
+===
+
+Xesh funksiyaning kolliziyalariga
+
+===
+
+Ochiq e'lon qilingan shifrlash kalitiga
+
++++
+
+Kalitlarni tarqatishning qanday protokoli mavjud?
+
+===
+
+#Kerberos (Needham-Schroeder) protokoli
+
+===
+
+RSA imzo protokoli
+
+===
+
+MD5 protokoli
+
+===
+
+DES protokoli
+
++++
+
+Umumiy seans kalitini hosil qilish uchun qaysi protokol qo'llaniladi?
+
+===
+
+#Diffi-Xellman protokoli
+
+===
+
+RSA imzo protokoli
+
+===
+
+MD5 protokoli
+
+===
+
+Kerberos protokoli 
+
+2 
+
+ 
+
+2
+</script>
+
+<script>
+const CATS=[
+{id:'base',name:'Kriptografiya asoslari',icon:'🧩',kw:[[/kriptotizim/,1],[/shifrlash|shifr\b|shifrmatn|shifrlanish|jarayon/,1],[/deshifrlash/,2],[/kalit/,1],[/kriptobardosh/,3],[/kriptolog|kriptotahlil|kriptoanalitik|kriptografiya/,3],[/\bsimmetrik/,1],[/to'plam/,4],[/\bxor\b/,2],[/autentifikatsiya|maxfiylik|yaxlitlik/,3],[/ma'lumotlarni himoyalash|axborotni/,3],[/hujum/,3]]},
+{id:'classic',name:'Klassik shifrlar',icon:'📜',kw:[[/sezar/,6],[/monoalfavit/,5],[/alfavit/,3],[/almashtirish shifri/,5],[/o'rin almashtirish/,2],[/o'rniga qo'yish/,1],[/belgi/,2]]},
+{id:'block',name:'Blokli shifrlar (umumiy)',icon:'🧱',kw:[[/blokli/,4],[/feistel/,4],[/sp[- ]?tarmoq/,4],[/s-?blok|s-?box/,3],[/lavin/,4],[/\becb\b/,4],[/o'zdst 1105/,5],[/blowfish/,5],[/p-massiv/,4],[/serpent|twofish|\bsquare\b|\brc6\b/,3],[/rejim/,2],[/diamatritsa/,3],[/primitiv amal/,3],[/tarqatish akslantirishi/,4],[/blok (uzunligi|o'lchami)/,2]]},
+{id:'stream',name:'Oqimli shifrlar va PSK',icon:'🌊',kw:[[/oqimli/,4],[/\brc4\b/,5],[/\ba5(\/1)?\b/,5],[/\bseal\b|\bwake\b/,3],[/psevdotasodifiy/,4],[/teskari aloqali/,4],[/siljitish registr/,3]]},
+{id:'des',name:'DES algoritmi',icon:'🔢',kw:[[/\bdes\b/,6],[/\b3des\b/,3],[/\bip\b jadval/,3]]},
+{id:'gost',name:'GOST 28147-89',icon:'🇷🇺',kw:[[/gost[ -]?28147/,6],[/gammalashtirish/,4],[/asosiy qadam|32-z/,4]]},
+{id:'aes',name:'AES (Rijndael)',icon:'🛡️',kw:[[/\baes\b|aes-128/,6],[/rijndael/,4],[/subbytes|shiftrows|mixcolumns|addroundkey/,5]]},
+{id:'rsa',name:'RSA algoritmi',icon:'🔑',kw:[[/\brsa\b/,6],[/eyler|φ\(n\)/,3],[/ochiq kalit (\{|e\b)/,3]]},
+{id:'asym',name:'Asimmetrik tizimlar (El-Gamal, ECC, DH)',icon:'🔐',kw:[[/el-?gamal/,6],[/diffi|diffie/,4],[/elliptik/,6],[/ochiq kalitli/,5],[/asimmetrik/,5],[/maxfiy eshik/,4],[/gibrid/,4],[/bir tomonlama/,3]]},
+{id:'hash',name:'Xesh funksiyalar (MD5, SHA)',icon:'#️⃣',kw:[[/xesh/,5],[/\bmd5\b/,6],[/\bsha-?\d*/,4],[/gost (r )?34\.11/,4],[/kolliz/,3]]},
+{id:'eri',name:'Elektron raqamli imzo (ERI)',icon:'✍️',kw:[[/\beri/,6],[/imzo|elektron raqamli/,4],[/\bdss\b|\becdsa\b|\bdsa\b/,4],[/gost (r )?34\.10/,5],[/o'zdst 1092/,6]]},
+{id:'key',name:'Kalitlar boshqaruvi',icon:'🗝️',kw:[[/kalitlarni/,2],[/seans/,4],[/kerberos/,5],[/x9\.17/,5],[/tarqatish/,2],[/kalit uzunligi/,2],[/generatsiya/,2],[/protokol/,3]]}
+];
+const OTHER={id:'other',name:'Boshqa',icon:'📦'};
+function nrm(s){return s.toLowerCase().replace(/[’ʻʼ`‘]/g,"'")}
+function classify(q,ans){
+  const a=nrm(q),b=nrm(ans),sc={};let best=0,top='';
+  for(const c of CATS){let s=0;for(const [re,w] of c.kw){if(re.test(a))s+=w*3;if(re.test(b))s+=w*1.5}
+    sc[c.id]=s;if(s>best){best=s;top=c.id}}
+  if(!best)return [OTHER.id];
+  const out=CATS.filter(c=>c.id!=='base'&&sc[c.id]>=Math.max(9,best*0.5)).map(c=>c.id);
+  if(top==='base'&&!out.length)return ['base'];
+  return out.length?out:[top];
+}
+
+
+
+const $=s=>document.querySelector(s);
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let Q=[],ById={},stats={},prefs={theme:null,mode:'topics',topic:'all',random:true,onlyBad:false};
+let S={fc:null,quiz:null};
+const ALL=[...CATS,OTHER],CatBy=Object.fromEntries(ALL.map(c=>[c.id,c]));
+
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function djb(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)}
+const mk=(q,opts,c)=>({id:djb(q+'|'+opts[c]),q,opts,c,cats:classify(q,opts[c])});
+
+function parse(text){
+  const list=[];let skipped=0;
+  text.replace(/\r/g,'').split('+++').filter(b=>b.includes('===')).forEach(b=>{
+    const arr=b.split('===').map(x=>x.trim());
+    const q=arr[0],raw=arr.slice(1).filter(Boolean);
+    if(!q||raw.length<2||raw.filter(o=>o.startsWith('#')).length!==1){skipped++;return}
+    const c=raw.findIndex(o=>o.startsWith('#'));
+    list.push(mk(q,raw.map(o=>o.replace(/^#\s*/,'')),c));
+  });
+  return {list,skipped};
+}
+function save(){LS.set('kq_stats',stats)}
+function savePrefs(){LS.set('kq_prefs',prefs)}
+function setQ(list){Q=list;ById={};Q.forEach(x=>ById[x.id]=x);LS.set('kq_data',Q.map(x=>({q:x.q,o:x.opts,c:x.c})));$('#count').textContent=Q.length;$('#ncat').textContent=topicList().length;fillSel()}
+function record(id,ok){const st=stats[id]||(stats[id]={a:0,c:0,last:null});st.a++;if(ok)st.c++;st.last=ok?'ok':'bad';save()}
+const isBad=x=>stats[x.id]&&stats[x.id].last==='bad';
+const isOk=x=>stats[x.id]&&stats[x.id].last==='ok';
+function topicList(){return ALL.map(c=>({c,items:Q.filter(x=>x.cats.includes(c.id))})).filter(t=>t.items.length)}
+const topicName=id=>id==='all'?'Barcha savollar':(CatBy[id]?CatBy[id].name:'');
+
+function fillSel(){
+  const sel=$('#topicSel');
+  sel.innerHTML=`<option value="all">📚 Barcha mavzular (${Q.length})</option>`+topicList().map(t=>`<option value="${t.c.id}">${t.c.icon} ${esc(t.c.name)} (${t.items.length})</option>`).join('');
+  if(prefs.topic!=='all'&&!Q.some(x=>x.cats.includes(prefs.topic)))prefs.topic='all';
+  sel.value=prefs.topic;
+}
+function start(m,topic){
+  if(topic!==undefined){prefs.topic=topic;$('#topicSel').value=topic;savePrefs()}
+  let pool=Q.filter(x=>(prefs.topic==='all'||x.cats.includes(prefs.topic))&&(!prefs.onlyBad||isBad(x)));
+  let ids=pool.map(x=>x.id);if(prefs.random)shuffle(ids);
+  S[m]={queue:ids,total:ids.length,done:0,ok:0,bad:0,flipped:false,sel:null,order:null};
+  if(m==='quiz')prepQ(S[m]);
+}
+function prepQ(s){if(s.queue.length){s.order=shuffle(ById[s.queue[0]].opts.map((_,i)=>i));s.sel=null}}
+
+function applyTheme(){
+  const dark=prefs.theme?prefs.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.classList.toggle('dark',dark);
+  $('#themeBtn').textContent=dark?'☀️':'🌙';
+}
+function renderStats(){
+  let A=0,C=0,solved=0;
+  Q.forEach(x=>{const s=stats[x.id];if(s&&s.a>0){solved++;A+=s.a;C+=s.c}});
+  $('#stSolved').textContent=solved+' / '+Q.length;
+  $('#stAcc').textContent=(A?Math.round(C/A*100):0)+'%';
+  $('#stBad').textContent=Q.filter(isBad).length;
+  const s=S[prefs.mode];let pct,label;
+  if(prefs.mode!=='topics'&&s&&s.total){pct=s.done/s.total*100;label='Sessiya: '+s.done+' / '+s.total+' · '+topicName(prefs.topic)}
+  else{const ok=Q.filter(isOk).length;pct=Q.length?ok/Q.length*100:0;label='O’zlashtirilgan: '+ok+' / '+Q.length}
+  $('#bar').style.width=pct+'%';$('#barLabel').textContent=label;$('#barPct').textContent=Math.round(pct)+'%';
+}
+function render(){
+  const m=prefs.mode;
+  document.querySelectorAll('.tab').forEach(t=>{
+    const on=t.dataset.mode===m;
+    t.className='tab py-2 rounded-xl text-sm font-semibold '+(on?'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-300':'text-slate-600 dark:text-slate-400');
+  });
+  $('#toolbar').classList.toggle('hidden',m==='topics');
+  $('#rnd').checked=prefs.random;$('#onlyBad').checked=prefs.onlyBad;$('#topicSel').value=prefs.topic;
+  renderStats();
+  if(m==='fc')renderFC();else if(m==='quiz')renderQuiz();else renderTopics();
+}
+
+const cardCls='rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm';
+
+function topicCard(id,icon,name,items){
+  const n=items.length,ok=items.filter(isOk).length,bad=items.filter(isBad).length,pct=n?Math.round(ok/n*100):0;
+  const sel=prefs.topic===id;
+  return `<div class="${cardCls} p-4 ${sel?'ring-2 ring-indigo-500':''}">
+    <div class="flex items-start gap-3"><div class="text-2xl">${icon}</div>
+      <div class="flex-1 min-w-0"><div class="font-semibold leading-snug">${esc(name)}</div>
+      <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${n} ta savol${bad?` · <span class="text-rose-600 dark:text-rose-400">${bad} xato</span>`:''}</div></div>
+      <div class="text-right"><div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">${pct}%</div><div class="text-[10px] text-slate-400">o’zlashtirish</div></div></div>
+    <div class="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden my-3"><div class="h-full bg-emerald-500" style="width:${pct}%"></div></div>
+    <div class="grid grid-cols-2 gap-2 text-sm">
+      <button data-act="go" data-m="fc" data-t="${id}" class="py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-200 font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/70">🃏 Kartochka</button>
+      <button data-act="go" data-m="quiz" data-t="${id}" class="py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700">✅ Test</button>
+    </div></div>`;
+}
+function renderTopics(){
+  $('#view').innerHTML=`<div class="flex items-center justify-between mb-3 gap-2 flex-wrap"><h2 class="font-bold">Mavzular bo’yicha o’qish</h2>
+    <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none"><input type="checkbox" id="onlyBad2" class="accent-rose-600" ${prefs.onlyBad?'checked':''}> Faqat xato qilinganlar</label></div>
+    <div class="grid sm:grid-cols-2 gap-3">${topicCard('all','📚','Barcha savollar',Q)}${topicList().map(t=>topicCard(t.c.id,t.c.icon,t.c.name,t.items)).join('')}</div>`;
+  $('#onlyBad2').addEventListener('change',e=>{prefs.onlyBad=e.target.checked;savePrefs();$('#onlyBad').checked=e.target.checked});
+}
+
+function emptyOrDone(s,m){
+  if(!s.total)return `<div class="${cardCls} p-8 text-center"><div class="text-4xl mb-2">🎉</div><p class="font-semibold">${prefs.onlyBad?'Bu mavzuda xato qilingan savol yo’q!':'Bu mavzuda savol yo’q.'}</p><p class="text-sm text-slate-500 mt-1">Boshqa mavzuni tanlang yoki “Faqat xatolar” ni o’chiring.</p></div>`;
+  if(!s.queue.length){
+    const tot=s.ok+s.bad,acc=tot?Math.round(s.ok/tot*100):0,nb=Q.filter(x=>isBad(x)&&(prefs.topic==='all'||x.cats.includes(prefs.topic))).length;
+    return `<div class="${cardCls} p-8 text-center"><div class="text-4xl mb-2">🏁</div><h2 class="text-xl font-bold mb-1">Sessiya yakunlandi</h2>
+    <p class="text-slate-500 dark:text-slate-400 mb-4">${m==='fc'?`Bildim: ${s.ok} · Bilmadim: ${s.bad}`:`To’g’ri: ${s.ok} · Xato: ${s.bad}`} · Aniqlik: <b class="text-indigo-600 dark:text-indigo-400">${acc}%</b></p>
+    <div class="flex justify-center gap-2 flex-wrap"><button data-act="restart" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-medium">Yangidan boshlash</button>${nb?`<button data-act="wrongs" class="px-4 py-2 rounded-xl bg-rose-600 text-white font-medium">Xatolar ustida ishlash (${nb})</button>`:''}<button data-mode="topics" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600">Mavzular</button></div></div>`;
+  }
+  return null;
+}
+function badge(q){return `<div class="flex flex-wrap gap-1 justify-center">`+q.cats.map(id=>{const c=CatBy[id];return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">${c.icon} ${esc(c.name)}</span>`}).join('')+`</div>`}
+
+function renderFC(){
+  const s=S.fc;const e=emptyOrDone(s,'fc');
+  if(e){$('#view').innerHTML=e;return}
+  const q=ById[s.queue[0]];
+  $('#view').innerHTML=`
+  <div class="flip cursor-pointer" data-act="flip"><div class="flip-inner ${s.flipped?'is-flipped':''}" id="flipInner">
+    <div class="face front ${cardCls} p-6 sm:p-10 min-h-[280px] flex flex-col items-center justify-center text-center gap-3">
+      ${badge(q)}<p class="text-lg sm:text-xl font-semibold leading-relaxed">${esc(q.q)}</p>
+      <p class="text-xs text-slate-400 mt-2">Javobni ko’rish uchun bosing (Space)</p></div>
+    <div class="face back rounded-2xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 shadow-sm p-6 sm:p-10 min-h-[280px] flex flex-col items-center justify-center text-center">
+      <span class="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-3">To’g’ri javob</span>
+      <p class="text-lg sm:text-xl font-semibold leading-relaxed">${esc(q.opts[q.c])}</p></div>
+  </div></div>
+  <div class="grid grid-cols-2 gap-3 mt-4">
+    <button data-act="dont" id="btnDont" class="py-3 rounded-xl bg-rose-600 text-white font-semibold hover:bg-rose-700 disabled:opacity-40" ${s.flipped?'':'disabled'}>✗ Bilmadim</button>
+    <button data-act="know" id="btnKnow" class="py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-40" ${s.flipped?'':'disabled'}>✓ Bildim</button></div>
+  <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-3">Qolgan: ${s.queue.length}. “Bilmadim” kartochka tez orada qayta chiqadi. Klaviatura: Space, ←, →</p>`;
+}
+function renderQuiz(){
+  const s=S.quiz;const e=emptyOrDone(s,'quiz');
+  if(e){$('#view').innerHTML=e;return}
+  const q=ById[s.queue[0]],L='ABCD',ans=s.sel!==null;
+  const opts=s.order.map((oi,di)=>{
+    let cls='border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-400',mark='';
+    if(ans){
+      if(oi===q.c){cls='border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-100';mark='✓'}
+      else if(di===s.sel){cls='border-rose-500 bg-rose-50 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100';mark='✗'}
+      else cls='border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 opacity-60';
+    }
+    return `<button data-act="pick" data-i="${di}" ${ans?'disabled':''} class="w-full text-left flex items-start gap-3 p-3.5 rounded-xl border-2 transition ${cls}">
+      <span class="shrink-0 w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 text-sm font-bold flex items-center justify-center">${L[di]||di+1}</span>
+      <span class="flex-1 pt-0.5">${esc(q.opts[oi])}</span><span class="font-bold">${mark}</span></button>`;
+  }).join('');
+  const ok=ans&&s.order[s.sel]===q.c;
+  $('#view').innerHTML=`
+  <div class="${cardCls} p-5 sm:p-6 mb-3"><div class="flex justify-between items-center mb-1"><span class="text-xs uppercase tracking-wide text-indigo-500">Savol ${s.done+(ans?0:1)} / ${s.total}</span>${badge(q)}</div>
+    <p class="text-lg font-semibold leading-relaxed">${esc(q.q)}</p></div>
+  <div class="space-y-2">${opts}</div>
+  ${ans?`<div class="mt-4 flex items-center justify-between gap-3"><span class="font-semibold ${ok?'text-emerald-600 dark:text-emerald-400':'text-rose-600 dark:text-rose-400'}">${ok?'To’g’ri! 🎉':'Noto’g’ri — to’g’ri javob yashil rangda'}</span><button data-act="next" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Keyingi →</button></div>`:`<p class="text-xs text-slate-400 mt-3 text-center">Klaviatura: 1–4 — tanlash, Enter — keyingi</p>`}`;
+}
+
+/* actions */
+function setMode(m){prefs.mode=m;savePrefs();if(m!=='topics'&&!S[m])start(m);render()}
+function actFlip(){const s=S.fc;if(!s||!s.queue.length)return;s.flipped=!s.flipped;$('#flipInner').classList.toggle('is-flipped',s.flipped);$('#btnDont').disabled=$('#btnKnow').disabled=!s.flipped}
+function actKnow(dont){
+  const s=S.fc;if(!s||!s.queue.length||!s.flipped)return;
+  const id=s.queue.shift();
+  if(dont){s.bad++;record(id,false);s.queue.splice(Math.min(s.queue.length,3+Math.floor(Math.random()*3)),0,id)}
+  else{s.ok++;s.done++;record(id,true)}
+  s.flipped=false;render();
+}
+function actPick(di){
+  const s=S.quiz;if(!s||!s.queue.length||s.sel!==null)return;
+  const q=ById[s.queue[0]];s.sel=di;const ok=s.order[di]===q.c;
+  record(q.id,ok);ok?s.ok++:s.bad++;s.done++;render();
+}
+function actNext(){const s=S.quiz;if(!s||s.sel===null)return;s.queue.shift();s.sel=null;prepQ(s);render()}
+function restartAll(){S.fc=S.quiz=null;if(prefs.mode!=='topics')start(prefs.mode)}
+
+function updImp(){
+  const t=$('#impText').value;if(!t.trim()){$('#impInfo').textContent='Matn kiritilmagan.';return}
+  const r=parse(t);$('#impInfo').innerHTML=`<b class="text-emerald-600">${r.list.length}</b> ta savol topildi`+(r.skipped?`, <b class="text-rose-600">${r.skipped}</b> tasi noto’g’ri formatda`:'');
+}
+function doImport(){
+  const r=parse($('#impText').value);if(!r.list.length){alert('Yaroqli savol topilmadi.');return}
+  let list=r.list;if(document.querySelector('input[name=impMode]:checked').value==='append'){const seen=new Set(Q.map(x=>x.id));list=Q.concat(r.list.filter(x=>!seen.has(x.id)))}
+  setQ(list);restartAll();$('#impText').value='';$('#modal').classList.add('hidden');render();
+}
+
+document.addEventListener('click',e=>{
+  const mt=e.target.closest('[data-mode]');if(mt){setMode(mt.dataset.mode);return}
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,m=prefs.mode;
+  if(a==='flip')actFlip();
+  else if(a==='know')actKnow(false);
+  else if(a==='dont')actKnow(true);
+  else if(a==='pick')actPick(+el.dataset.i);
+  else if(a==='next')actNext();
+  else if(a==='go'){prefs.mode=el.dataset.m;start(el.dataset.m,el.dataset.t);savePrefs();render();window.scrollTo(0,0)}
+  else if(a==='restart'){start(m);render()}
+  else if(a==='wrongs'){prefs.onlyBad=true;savePrefs();start(m);render()}
+  else if(a==='reset'){if(confirm('Barcha o’rganish progressi o’chirilsinmi?')){stats={};save();restartAll();render()}}
+  else if(a==='theme'){prefs.theme=document.documentElement.classList.contains('dark')?'light':'dark';savePrefs();applyTheme()}
+  else if(a==='import'){$('#modal').classList.remove('hidden');updImp()}
+  else if(a==='closeModal')$('#modal').classList.add('hidden');
+  else if(a==='doImport')doImport();
+  else if(a==='defaults'){if(confirm('Standart savollarga qaytilsinmi?')){setQ(parse($('#defaultData').textContent).list);restartAll();$('#modal').classList.add('hidden');render()}}
+});
+$('#topicSel').addEventListener('change',e=>{prefs.topic=e.target.value;savePrefs();start(prefs.mode);render()});
+$('#onlyBad').addEventListener('change',e=>{prefs.onlyBad=e.target.checked;savePrefs();start(prefs.mode);render()});
+$('#rnd').addEventListener('change',e=>{prefs.random=e.target.checked;savePrefs()});
+$('#impText').addEventListener('input',updImp);
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')e.target.classList.add('hidden')});
+document.addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||!$('#modal').classList.contains('hidden'))return;
+  const m=prefs.mode;
+  if(m==='fc'){if(e.key===' '||e.key==='Enter'){e.preventDefault();actFlip()}else if(e.key==='ArrowRight')actKnow(false);else if(e.key==='ArrowLeft')actKnow(true)}
+  else if(m==='quiz'){if('1234'.includes(e.key)&&e.key)actPick(+e.key-1);else if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){e.preventDefault();actNext()}}
+});
+
+(function init(){
+  Object.assign(prefs,LS.get('kq_prefs',{}));
+  if(!['topics','fc','quiz'].includes(prefs.mode))prefs.mode='topics';
+  stats=LS.get('kq_stats',{});
+  const d=LS.get('kq_data',null);
+  setQ(d&&d.length?d.map(x=>mk(x.q,x.o,x.c)):parse($('#defaultData').textContent).list);
+  applyTheme();
+  if(prefs.mode!=='topics')start(prefs.mode);
+  render();
+})();
+</script>
+</body>
+</html>
